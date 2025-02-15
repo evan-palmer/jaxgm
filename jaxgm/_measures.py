@@ -16,4 +16,11 @@ def _softnorm(x: Num[Array, "..."], eps: float = 1e-6) -> Num[Array, "..."]:
 
 @jaxtyped(typechecker=beartype)
 def chordal_distance(g: LieGroupElement, h: LieGroupElement) -> float:
-    return _softnorm(g.T @ h - jnp.eye(4))
+    A = g @ jnp.linalg.inv(h) - jnp.eye(4)
+    return jnp.trace(A.T @ A)
+
+
+@jaxtyped(typechecker=beartype)
+def geodesic_distance(g: LieGroupElement, h: LieGroupElement) -> float:
+    # TODO: We need the matrix logarithm for this
+    ...

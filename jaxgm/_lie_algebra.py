@@ -5,6 +5,7 @@ from jaxtyping import Array, Num, jaxtyped
 from jaxgm._lie_group import LieGroupElement
 
 TangentVector = Num[Array, "4 4"]
+TwistVector = Num[Array, "6"]
 LieAlgebraElement = tuple[LieGroupElement, TangentVector]
 
 
@@ -19,13 +20,13 @@ def skew_symmetric(x: Num[Array, "3"]) -> Num[Array, "3 3"]:
 
 
 @jaxtyped(typechecker=beartype)
-def to_matrix(ξ: Num[Array, "6"]) -> TangentVector:
+def to_matrix(ξ: TwistVector) -> TangentVector:
     v, w = jnp.split(ξ, 2)
     return jnp.block([[skew_symmetric(v), w.reshape(3, 1)], [0, 0, 0, 0]])
 
 
 @jaxtyped(typechecker=beartype)
-def to_parameters(ξ: TangentVector) -> Num[Array, "6"]:
+def to_parameters(ξ: TangentVector) -> TwistVector:
     return jnp.array([ξ[0, 3], ξ[1, 3], ξ[2, 3], ξ[2, 1], ξ[0, 2], ξ[1, 0]])
 
 
@@ -43,4 +44,13 @@ def Ad_inv(
     jnp.linalg.inv(g) @ h @ g, jnp.linalg.inv(g) @ h_circ @ g
 
 
-# TODO: Add lie bracket
+@jaxtyped(typechecker=beartype)
+def lie_bracket(A: LieAlgebraElement, B: LieAlgebraElement):
+    # TODO: Implement the Lie bracket
+    ...
+
+
+@jaxtyped(typechecker=beartype)
+def bch(A: LieAlgebraElement, B: LieAlgebraElement):
+    # TODO: Implement the Baker-Campbell-Hausdorff formula
+    ...
