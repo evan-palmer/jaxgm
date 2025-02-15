@@ -1,1 +1,1 @@
-# jaxgeometry
+# jaxgm
