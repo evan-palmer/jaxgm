@@ -41,3 +41,6 @@ def Ad_inv(
     g: LieGroupElement, h: LieGroupElement, h_circ: LieAlgebraElement
 ) -> LieAlgebraElement:
     jnp.linalg.inv(g) @ h @ g, jnp.linalg.inv(g) @ h_circ @ g
+
+
+# TODO: Add lie bracket
