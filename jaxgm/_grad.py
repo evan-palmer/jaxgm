@@ -1,11 +1,14 @@
-def lie_derivative(): ...
+from typing import Any, Callable
+
+import jax
+from beartype import beartype
+from jaxtyping import jaxtyped
+
+from jaxgm._lie_group import GroupElement
 
 
-def directional_derivative():
-    # This will be defined to allow for implementing custom gradients of functions
-    ...
-
-
-def value_and_directional_derivative():
-    # This will be defined to allow for implementing custom gradients of functions
-    ...
+@jaxtyped(typechecker=beartype)
+def directional_derivative(
+    f: Callable[[GroupElement, float], GroupElement], g: GroupElement
+) -> Callable[..., Any]:
+    return jax.jacfwd(lambda delta: f(g, delta))
