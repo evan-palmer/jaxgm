@@ -3,7 +3,6 @@ from beartype import beartype
 from jax.scipy.spatial.transform import Rotation
 from jaxtyping import Array, Float, jaxtyped
 
-from jaxgm._lie_group import GroupElement
 from jaxgm.linalg._norm import damped_norm
 
 
@@ -40,7 +39,7 @@ def special_orthogonal_error(R: Float[Array, "n n"]) -> Float[Array, ""]:
     return jnp.abs(jnp.linalg.det(R)) - 1
 
 
-@jaxtyped(typechecker=beartype)
-def geodesic_distance(g: GroupElement, h: GroupElement) -> float:
-    # TODO: We need the matrix logarithm for this
-    ...
+# @jaxtyped(typechecker=beartype)
+# def geodesic_distance(g: SE3GroupElement, h: SE3GroupElement) -> float:
+#     # TODO: We need the matrix logarithm for this
+#     ...

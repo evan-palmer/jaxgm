@@ -1,5 +1,5 @@
 {
-    "name": "Python 3",
+    "name": "CPU Dev Container",
     "image": "mcr.microsoft.com/devcontainers/python:latest",
     "postCreateCommand": "pip3 install --user -r requirements.txt",
     "customizations": {
@@ -12,4 +12,3 @@
       }
     }
   }
-  
