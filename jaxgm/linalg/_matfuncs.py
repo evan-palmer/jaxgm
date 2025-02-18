@@ -5,9 +5,8 @@ import jax.numpy as jnp
 import scipy
 from beartype import beartype
 from jax import jit
-from jaxtyping import Array, Complex, Num, jaxtyped
+from jaxtyping import Array, Num, jaxtyped
 
-from jaxgm._lie_group import to_parameters
 from jaxgm.linalg._norm import squared_frobenius_norm
 
 
@@ -99,27 +98,13 @@ def is_psd(A: Num[Array, "n n"]) -> bool:
     return jnp.all(jnp.linalg.eigvalsh(A) >= 0)
 
 
-# @jaxtyped(typechecker=beartype)
-def _is_rot_psd(T: Num[Array, "n n"]) -> bool:
-    """Check if the rotation component in an SE(n) element is positive semidefinite.
-
-    Parameters
-    ----------
-    T : Num[Array, "n n"]
-        The SE(n) matrix whose rotation component should be checked.
-
-    Returns
-    -------
-    bool
-        True if the rotation matrix is positive semidefinite, False otherwise.
-    """
-    rot, _ = to_parameters(T)
-    return is_pd(rot)
+def schur(x):
+    return jax.pure_callback(scipy.linalg.schur, (x, x), x)
 
 
 @jit
-@jaxtyped(typechecker=beartype)
-def logm(X: Num[Array, "n n"]) -> Complex[Array, "n n"]:
+# @jaxtyped(typechecker=beartype)
+def logm(X: Num[Array, "n n"]) -> Num[Array, "n n"]:
     """Matrix logarithm.
 
     This function implements a `pure_callback` around `scipy.linalg.logm`. We force
@@ -135,15 +120,5 @@ def logm(X: Num[Array, "n n"]) -> Complex[Array, "n n"]:
     Complex[Array, "n n"]
         The matrix logarithm of `X`.
     """
-    # Only the eigenvalues of the rotation matrix will indicate whether the logm will
-    # be real or complex. I believe that it has something to do with the Jordan block
-    # of the matrix.
-    return jax.lax.cond(
-        _is_rot_psd(X),
-        lambda: jax.pure_callback(
-            scipy.linalg.logm, jax.ShapeDtypeStruct(X.shape, jnp.float64), X
-        ).astype(jnp.complex128),
-        lambda: jax.pure_callback(
-            scipy.linalg.logm, jax.ShapeDtypeStruct(X.shape, jnp.complex128), X
-        ),
-    )
+    dtype = jnp.result_type(X)
+    return jax.pure_callback(scipy.linalg.logm, jax.ShapeDtypeStruct(X.shape, dtype), X)
