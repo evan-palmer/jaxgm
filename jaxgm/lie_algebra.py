@@ -1,38 +1,24 @@
-from typing import Union
-
 import jax.numpy as jnp
 from beartype import beartype
 from jaxtyping import Array, Num, jaxtyped
 
-from jaxgm.linalg._vecfuncs import to_skew_symmetric
+import jaxgm
 
 
 @jaxtyped(typechecker=beartype)
-def to_matrix(
-    ξ: Union[Num[Array, "6"], Num[Array, "3"]],
-) -> Union[Num[Array, "4 4"], Num[Array, "3 3"]]:
-    if ξ.size == 6:
-        return jnp.block(
-            [[to_skew_symmetric(ξ[3:]), ξ[:3].reshape(-1, 1)], [jnp.zeros((1, 3))]]
-        )
-    elif ξ.size == 3:
-        return jnp.block(
-            [[to_skew_symmetric(ξ[2]), ξ[:2].reshape(-1, 1)], [jnp.zeros((1, 3))]]
-        )
-
-    raise ValueError("Vector must be of size 3 or 6.")
+def to_matrix(ξ: Num[Array, "6"]) -> Num[Array, "4 4"]:
+    v, w = jnp.split(ξ, 2)
+    return jnp.block(
+        [
+            [jaxgm.linalg.to_skew_symmetric(w), v.reshape(-1, 1)],
+            [jnp.zeros((1, 4))],
+        ]
+    )
 
 
 @jaxtyped(typechecker=beartype)
-def to_parameters(
-    ξ: Union[Num[Array, "4 4"], Num[Array, "3 3"]],
-) -> Union[Num[Array, "6"], Num[Array, "3"]]:
-    if ξ.shape == (4, 4):
-        return jnp.array([ξ[0, 3], ξ[1, 3], ξ[2, 3], ξ[2, 1], ξ[0, 2], ξ[1, 0]])
-    elif ξ.shape == (3, 3):
-        return jnp.array([ξ[0, 2], ξ[1, 2], ξ[1, 0]])
-
-    raise ValueError("Matrix must be of size 3x3 or 4x4.")
+def to_parameters(ξ: Num[Array, "4 4"]) -> Num[Array, "6"]:
+    return jnp.array([ξ[0, 3], ξ[1, 3], ξ[2, 3], ξ[2, 1], ξ[0, 2], ξ[1, 0]])
 
 
 @jaxtyped(typechecker=beartype)

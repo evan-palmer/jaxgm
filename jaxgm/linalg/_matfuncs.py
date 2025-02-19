@@ -2,7 +2,6 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
-import scipy
 from beartype import beartype
 from jax import jit
 from jaxtyping import Array, Num, jaxtyped
@@ -50,7 +49,7 @@ def sqrtm_pd(A: Num[Array, "n n"], tol: float = 1e-6) -> Num[Array, "n n"]:
         return X, Y
 
     def cond(args):
-        X, Y = args
+        X, _ = args
         return squared_frobenius_norm(jnp.linalg.matrix_power(X, 2) - A) > tol
 
     X, Y = jax.lax.while_loop(cond, make_step, (X, Y))
@@ -98,27 +97,22 @@ def is_psd(A: Num[Array, "n n"]) -> bool:
     return jnp.all(jnp.linalg.eigvalsh(A) >= 0)
 
 
-def schur(x):
-    return jax.pure_callback(scipy.linalg.schur, (x, x), x)
+@partial(jit, static_argnames=("itmax",))
+@jaxtyped(typechecker=beartype)
+def schur(
+    T: Num[Array, "n n"], itmax: int = 100
+) -> tuple[Num[Array, "n n"], Num[Array, "n n"]]:
+    n = T.shape[0]
+    I = jnp.eye(n)  # noqa: E741
 
+    def make_step(i, args):
+        A, Q_t = args
 
-@jit
-# @jaxtyped(typechecker=beartype)
-def logm(X: Num[Array, "n n"]) -> Num[Array, "n n"]:
-    """Matrix logarithm.
+        shift = A[-1, -1] * I
+        Q, R = jnp.linalg.qr(A - shift)
+        A = R @ Q + shift
+        Q_t = Q_t @ Q
 
-    This function implements a `pure_callback` around `scipy.linalg.logm`. We force
-    the output to be `complex128` so that this function can be jitable.
+        return A, Q_t
 
-    Parameters
-    ----------
-    X : Num[Array, "n n"]
-        The matrix to compute the logarithm of.
-
-    Returns
-    -------
-    Complex[Array, "n n"]
-        The matrix logarithm of `X`.
-    """
-    dtype = jnp.result_type(X)
-    return jax.pure_callback(scipy.linalg.logm, jax.ShapeDtypeStruct(X.shape, dtype), X)
+    return jax.lax.fori_loop(0, itmax, make_step, (T, I))

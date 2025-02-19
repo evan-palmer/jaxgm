@@ -4,27 +4,11 @@ from jaxtyping import Array, Num, jaxtyped
 
 
 @jaxtyped(typechecker=beartype)
-def to_matrix(rot: Num[Array, "n n"], t: Num[Array, "n"]) -> Num[Array, "n+1 n+1"]:
+def to_matrix(t: Num[Array, "n"], rot: Num[Array, "n n"]) -> Num[Array, "n+1 n+1"]:
     n = t.shape[0] + 1
     last_row = jnp.zeros((1, n))
     last_row = last_row.at[0, -1].set(1)
     return jnp.block([[rot, t.reshape(-1, 1)], [last_row]])
-
-
-@jaxtyped(typechecker=beartype)
-def to_matrix_from_rotation(rot: Num[Array, "n n"]) -> Num[Array, "n+1 n+1"]:
-    n = rot.shape[0] + 1
-    last_row = jnp.zeros((1, n))
-    last_row = last_row.at[0, -1].set(1)
-    return jnp.block([[rot, jnp.zeros((n - 1, 1))], [last_row]])
-
-
-@jaxtyped(typechecker=beartype)
-def to_matrix_from_translation(t: Num[Array, "n"]) -> Num[Array, "n+1 n+1"]:
-    n = t.shape[0] + 1
-    last_row = jnp.zeros((1, n))
-    last_row = last_row.at[0, -1].set(1)
-    return jnp.block([[jnp.eye(t.shape[-1]), t.reshape(-1, 1)], [last_row]])
 
 
 @jaxtyped(typechecker=beartype)

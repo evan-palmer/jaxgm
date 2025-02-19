@@ -1,4 +1,5 @@
-from ._matfuncs import is_pd, is_psd, logm
+from ._logm import logm
+from ._matfuncs import is_pd, is_psd, schur
 from ._norm import damped_norm, squared_frobenius_norm
 from ._vecfuncs import to_skew_symmetric
 
@@ -9,4 +10,5 @@ __all__ = [
     "is_pd",
     "is_psd",
     "logm",
+    "schur",
 ]

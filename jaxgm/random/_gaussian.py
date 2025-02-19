@@ -3,7 +3,8 @@ import jax.numpy as jnp
 from beartype import beartype
 from jaxtyping import Array, Num, PRNGKeyArray, jaxtyped
 
-from jaxgm._lie_algebra import to_matrix
+import jaxgm
+import jaxgm.lie_algebra
 
 
 @jaxtyped(typechecker=beartype)
@@ -16,8 +17,8 @@ def left_gaussian(
     key: PRNGKeyArray, mean: Num[Array, "n n"], num_samples: int
 ) -> tuple[Num[Array, "m n n"], Num[Array, "m n n"]]:
     vels = _sample_lie_algebra(key, num_samples)
-    gs = jax.vmap(lambda ξ: mean @ jax.scipy.linalg.expm(ξ))(vels)
-    g_circs = jax.vmap(to_matrix)(vels)
+    g_circs = jax.vmap(jaxgm.lie_algebra.to_matrix)(vels)
+    gs = jax.vmap(lambda g_circ: mean @ jax.scipy.linalg.expm(g_circ))(g_circs)
     return gs, g_circs
 
 
@@ -26,6 +27,6 @@ def right_gaussian(
     key: PRNGKeyArray, mean: Num[Array, "n n"], num_samples: int
 ) -> tuple[Num[Array, "m n n"], Num[Array, "m n n"]]:
     vels = _sample_lie_algebra(key, num_samples)
-    gs = jax.vmap(lambda ξ: jax.scipy.linalg.expm(ξ) @ mean)(vels)
-    g_circs = jax.vmap(to_matrix)(vels)
+    g_circs = jax.vmap(jaxgm.lie_algebra.to_matrix)(vels)
+    gs = jax.vmap(lambda g_circ: jax.scipy.linalg.expm(g_circ) @ mean)(g_circs)
     return gs, g_circs

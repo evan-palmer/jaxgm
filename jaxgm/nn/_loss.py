@@ -1,32 +1,21 @@
 import jax.numpy as jnp
 from beartype import beartype
-from jax.scipy.spatial.transform import Rotation
-from jaxtyping import Array, Float, jaxtyped
+from jax.typing import DTypeLike
+from jaxtyping import Array, Float, Num, jaxtyped
 
 from jaxgm.linalg._norm import damped_norm
+from jaxgm.rotation import rotation_angle
 
 
 @jaxtyped(typechecker=beartype)
-def chordal_distance(g: Float[Array, "n n"], h: Float[Array, "n n"]) -> float:
+def chordal_distance(g: Num[Array, "n n"], h: Num[Array, "n n"]) -> DTypeLike:
     A = g @ jnp.linalg.inv(h) - jnp.eye(g.shape[-1])
     return jnp.trace(A.T @ A)
 
 
 @jaxtyped(typechecker=beartype)
-def rotation_angle(R1: Rotation, R2: Rotation) -> Float[Array, ""]:
-    R1_mat, R2_mat = R1.as_matrix(), R2.as_matrix()
-    g = R1_mat @ R2_mat.T
-
-    # The angle of a rotation is computed as:
-    # tr(R) = 1 + 2 * cos(theta)
-    # |theta| = arccos((tr(R) - 1) / 2)
-
-    # Compute the cosine of the angle using the trace
-    cos = (jnp.trace(g) - 1) / 2
-    cos = jnp.clip(cos, -1, 1)
-    theta = jnp.arccos(cos)
-
-    return theta
+def rotation_error(R1: Num[Array, "n n"], R2: Num[Array, "n n"]) -> DTypeLike:
+    return rotation_angle(R1 @ R2.T)
 
 
 @jaxtyped(typechecker=beartype)

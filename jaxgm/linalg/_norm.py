@@ -20,9 +20,9 @@ def squared_frobenius_norm(X: Num[Array, "..."]) -> DTypeLike:
 
 @jaxtyped(typechecker=beartype)
 def normest(T: Num[Array, "..."], p: int) -> float:
+    T = jnp.linalg.matrix_power(T - jnp.eye(T.shape[0], dtype=T.dtype), p)
+
     def onenormest(A):
         return jnp.linalg.norm(A, 1, axis=(-2, -1))
-
-    T = jnp.linalg.matrix_power(T - jnp.eye(T.shape[0], dtype=T.dtype), p)
 
     return onenormest(T)
