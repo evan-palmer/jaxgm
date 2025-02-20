@@ -1,13 +1,18 @@
+from functools import partial
+
+import jax
 import jax.numpy as jnp
 from beartype import beartype
+from jax import jit
 from jax.scipy.spatial.transform import Rotation
-from jaxtyping import Array, DTypeLike, Num, jaxtyped
+from jaxtyping import Array, DTypeLike, Num, PRNGKeyArray, jaxtyped
 
 from jaxgm.linalg._norm import damped_norm
 
 
+@jit
 @jaxtyped(typechecker=beartype)
-def normalize(R: Num[Array, "n n"], eps: float = 1e-6) -> Num[Array, "n n"]:
+def normalize(R: Num[Array, "4 4"], eps: float = 1e-6) -> Num[Array, "4 4"]:
     x_raw, y_raw, _ = jnp.split(R, 3)
 
     # Normalize x-axis
@@ -28,8 +33,9 @@ def normalize(R: Num[Array, "n n"], eps: float = 1e-6) -> Num[Array, "n n"]:
     return R_norm
 
 
+@jit
 @jaxtyped(typechecker=beartype)
-def rotation_angle(R: Num[Array, "n n"]) -> DTypeLike:
+def rotation_angle(R: Num[Array, "4 4"]) -> DTypeLike:
     # The angle of a rotation is computed as:
     # tr(R) = 1 + 2 * cos(theta)
     # |theta| = arccos((tr(R) - 1) / 2)
@@ -42,11 +48,27 @@ def rotation_angle(R: Num[Array, "n n"]) -> DTypeLike:
     return theta
 
 
-# @jaxtyped(typechecker=beartype)
-# def perturb(R: Num[Array, "n n"]) -> Num[Array, "n n"]:
+@partial(jit, static_argnames=("eps"))
+@jaxtyped(typechecker=beartype)
+def perturb_left(
+    key: PRNGKeyArray, R: Num[Array, "4 4"], eps: float = 1e-6
+) -> Num[Array, "n n"]:
+    angles = jax.random.uniform(key, shape=(3,), minval=-eps, maxval=eps)
+    noise = Rotation.from_euler("xyz", angles).as_matrix()
+    return noise @ R
+
+
+@partial(jit, static_argnames=("eps"))
+@jaxtyped(typechecker=beartype)
+def perturb_right(
+    key: PRNGKeyArray, R: Num[Array, "4 4"], eps: float = 1e-6
+) -> Num[Array, "n n"]:
+    angles = jax.random.uniform(key, shape=(3,), minval=-eps, maxval=eps)
+    noise = Rotation.from_euler("xyz", angles).as_matrix()
+    return R @ noise
 
 
 @jaxtyped(typechecker=beartype)
-def lerp(R1: Rotation, R2: Rotation, t: float) -> Rotation:
-    ...
-    # TODO: Implement spherical linear interpolation (SLERP)
+def slerp(
+    R1: Num[Array, "4 4"], R2: Num[Array, "4 4"], t: DTypeLike
+) -> Num[Array, "4 4"]: ...

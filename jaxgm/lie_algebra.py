@@ -1,23 +1,24 @@
 import jax.numpy as jnp
 from beartype import beartype
+from jax import jit
 from jaxtyping import Array, Num, jaxtyped
 
 import jaxgm
 
 
 @jaxtyped(typechecker=beartype)
-def to_matrix(ξ: Num[Array, "6"]) -> Num[Array, "4 4"]:
+def hat(ξ: Num[Array, "6"]) -> Num[Array, "4 4"]:
     v, w = jnp.split(ξ, 2)
     return jnp.block(
         [
-            [jaxgm.linalg.to_skew_symmetric(w), v.reshape(-1, 1)],
+            [jaxgm.linalg.skew3(w), v.reshape(-1, 1)],
             [jnp.zeros((1, 4))],
         ]
     )
 
 
 @jaxtyped(typechecker=beartype)
-def to_parameters(ξ: Num[Array, "4 4"]) -> Num[Array, "6"]:
+def vee(ξ: Num[Array, "4 4"]) -> Num[Array, "6"]:
     return jnp.array([ξ[0, 3], ξ[1, 3], ξ[2, 3], ξ[2, 1], ξ[0, 2], ξ[1, 0]])
 
 
@@ -36,6 +37,7 @@ def lie_bracket(X: Num[Array, "n n"], Y: Num[Array, "n n"]) -> Num[Array, "n n"]
     return X @ Y - Y @ X
 
 
+@jit
 @jaxtyped(typechecker=beartype)
 def BCH(X: Num[Array, "n n"], Y: Num[Array, "n n"]) -> Num[Array, "n n"]:
     o1 = X + Y

@@ -1,14 +1,29 @@
-from ._logm import logm
-from ._matfuncs import is_pd, is_psd, schur
-from ._norm import damped_norm, squared_frobenius_norm
-from ._vecfuncs import to_skew_symmetric
+from ._matfuncs import is_pd, is_psd, logm_se3, logm_so3, schur, sqrtm_pd
+from ._norm import (
+    damped_norm,
+    frobenius_norm,
+    softnorm,
+    squared_norm,
+    weighted_frobenius_norm,
+    weighted_se3_norm,
+)
+from ._vecfuncs import skew2, skew3, vex2, vex3
 
 __all__ = [
     "damped_norm",
-    "to_skew_symmetric",
-    "squared_frobenius_norm",
+    "skew3",
+    "frobenius_norm",
     "is_pd",
     "is_psd",
-    "logm",
     "schur",
+    "skew2",
+    "vex2",
+    "vex3",
+    "logm_se3",
+    "logm_so3",
+    "squared_norm",
+    "softnorm",
+    "weighted_frobenius_norm",
+    "weighted_se3_norm",
+    "sqrtm_pd",
 ]

@@ -14,19 +14,19 @@ def to_matrix(t: Num[Array, "n"], rot: Num[Array, "n n"]) -> Num[Array, "n+1 n+1
 @jaxtyped(typechecker=beartype)
 def to_parameters(
     g: Num[Array, "n n"],
-) -> tuple[Num[Array, "n-1 n-1"], Num[Array, "n-1"]]:
+) -> tuple[Num[Array, "n-1"], Num[Array, "n-1 n-1"]]:
     n = g.shape[0] - 1
-    return g[:n, :n], g[:n, n]
+    return g[:n, n], g[:n, :n]
 
 
 @jaxtyped(typechecker=beartype)
-def flatten(g: Num[Array, "n n"]) -> Num[Array, "n(n+1)"]:
+def flatten(g: Num[Array, "n n"]) -> Num[Array, "n(n+1)"]:  # type: ignore
     n = g.shape[0] - 1
     return jnp.concatenate([g[:n, n], g[:n, :n].flatten()])
 
 
 @jaxtyped(typechecker=beartype)
-def unflatten(g: Num[Array, "n(n+1)"]) -> Num[Array, "n n"]:
+def unflatten(g: Num[Array, "n(n+1)"]) -> Num[Array, "n n"]:  # type: ignore
     n = (-1 + jnp.sqrt(1 + 4 * g.shape[0])) / 2
     t, rot = jnp.split(g, (n,))
     rot = rot.reshape(n, n)
@@ -41,3 +41,8 @@ def AD(g: Num[Array, "n n"], h: Num[Array, "n n"]) -> Num[Array, "n n"]:
 @jaxtyped(typechecker=beartype)
 def AD_inv(g: Num[Array, "n n"], h: Num[Array, "n n"]) -> Num[Array, "n n"]:
     return jnp.linalg.inv(g) @ h @ g
+
+
+def interpolate():
+    # Implement: An SVD-Based Projection Method for Interpolation on SE(3). Calin Belta, Vijay Kumar. 2002
+    ...

@@ -1,26 +1,16 @@
 import jax
 import jax.numpy as jnp
+from jax.scipy.spatial.transform import Rotation
 
 import jaxgm
-import jaxgm.lie_algebra
-import jaxgm.lie_group
 
 jax.config.update("jax_enable_x64", True)
-jnp.set_printoptions(precision=5, suppress=True, linewidth=200)
+jnp.set_printoptions(precision=8, suppress=True, linewidth=200)
 
 
-def _geodesic_distance(g, h, key):
-    return jaxgm.lie_algebra.to_parameters(
-        jaxgm.linalg.logm(jnp.linalg.inv(g) @ h, key)
-    )
+key = jax.random.PRNGKey(0)
+mat = Rotation.from_euler("xyz", [90.0, 180.0, 0.0], degrees=True).as_matrix()
 
-
-k1, k2 = jax.random.split(jax.random.PRNGKey(0))
-ghs, _ = jaxgm.random.left_gaussian(k1, jnp.eye(4), 2)
-gs, hs = jnp.split(ghs, 2, axis=0)
-
-# print(jax.vmap(jaxgm.linalg.schur)(gs))
-
-print(jax.vmap(_geodesic_distance)(gs, hs, jax.random.split(k2, gs.shape[0])))
-
-# print(jax.jacfwd(_geodesic_distance, argnums=(0, 1))(g, h))
+print(jaxgm.rotation.rotation_angle(mat))
+mat = jaxgm.rotation.perturb_right(key, mat)
+print(jaxgm.rotation.rotation_angle(mat))
