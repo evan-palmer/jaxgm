@@ -1,5 +1,4 @@
-from functools import partial
-
+import equinox as eqx
 import jax
 import jax.numpy as jnp
 from beartype import beartype
@@ -13,7 +12,7 @@ from jaxgm.linalg._vecfuncs import skew3, vex3
 from jaxgm.rotation import rotation_angle
 
 
-@partial(jit, static_argnames=("tol",))
+@eqx.filter_jit
 @jaxtyped(typechecker=beartype)
 def sqrtm_pd(A: Num[Array, "n n"], tol: float = 1e-6) -> Num[Array, "n n"]:
     """Square root of a positive definite matrix using Denman-Beaver's scaled iteration.
@@ -92,7 +91,7 @@ def is_psd(A: Num[Array, "n n"]) -> DTypeLike:
     return jnp.all(jnp.linalg.eigvals(A) >= 0)
 
 
-@partial(jit, static_argnames=("itmax",))
+@eqx.filter_jit
 @jaxtyped(typechecker=beartype)
 def schur(
     T: Num[Array, "n n"], itmax: int = 100

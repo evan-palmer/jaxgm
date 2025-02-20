@@ -1,5 +1,4 @@
-from functools import partial
-
+import equinox as eqx
 import jax
 import jax.numpy as jnp
 from beartype import beartype
@@ -10,9 +9,24 @@ from jaxtyping import Array, DTypeLike, Num, PRNGKeyArray, jaxtyped
 from jaxgm.linalg._norm import damped_norm
 
 
-@jit
+@eqx.filter_jit
 @jaxtyped(typechecker=beartype)
 def normalize(R: Num[Array, "4 4"], eps: float = 1e-6) -> Num[Array, "4 4"]:
+    """Normalize a rotation matrix.
+
+    Parameters
+    ----------
+    R : Num[Array, "4 4"]
+        The rotation matrix to normalize.
+    eps : float, optional
+        The epsilon value used by the damped norm. This shouldn't need to be changed, by
+        default 1e-6.
+
+    Returns
+    -------
+    Num[Array, "4 4"]
+        The normalized rotation matrix
+    """
     x_raw, y_raw, _ = jnp.split(R, 3)
 
     # Normalize x-axis
@@ -36,6 +50,28 @@ def normalize(R: Num[Array, "4 4"], eps: float = 1e-6) -> Num[Array, "4 4"]:
 @jit
 @jaxtyped(typechecker=beartype)
 def rotation_angle(R: Num[Array, "4 4"]) -> DTypeLike:
+    """Compute the angle of a rotation matrix.
+
+    Parameters
+    ----------
+    R : Num[Array, "4 4"]
+        The rotation matrix.
+
+    Returns
+    -------
+    DTypeLike
+        The angle of the rotation matrix
+
+    Examples
+    --------
+    This can be used to check whether or not a rotation matrix is singular:
+
+    ```python
+    >>> R = Rotation.from_euler("xyz", [180.0, 0.0, 0.0], degrees=True).as_matrix()
+    >>> jaxgm.rotation.rotation_angle(R)
+    3.1415927
+    ```
+    """
     # The angle of a rotation is computed as:
     # tr(R) = 1 + 2 * cos(theta)
     # |theta| = arccos((tr(R) - 1) / 2)
@@ -48,27 +84,75 @@ def rotation_angle(R: Num[Array, "4 4"]) -> DTypeLike:
     return theta
 
 
-@partial(jit, static_argnames=("eps"))
+@eqx.filter_jit
 @jaxtyped(typechecker=beartype)
 def perturb_left(
     key: PRNGKeyArray, R: Num[Array, "4 4"], eps: float = 1e-6
 ) -> Num[Array, "n n"]:
+    """Apply a small random perturbation to the left side of a rotation matrix.
+
+    Parameters
+    ----------
+    key : PRNGKeyArray
+        The PRNG key for random number generation.
+    R : Num[Array, "4 4"]
+        The rotation matrix to perturb.
+    eps : float, optional
+        The maximum perturbation angle, by default 1e-6.
+
+    Returns
+    -------
+    Num[Array, "n n"]
+        The perturbed rotation matrix.
+
+    See Also
+    --------
+    perturb_right : Apply a small random perturbation to the right side of a rotation
+        matrix.
+    rotation_angle : Compute the angle of a rotation matrix.
+
+    Notes
+    -----
+    This is useful when needing to apply a small perturbation to a rotation matrix (e.g.,
+    when the rotation matrix is singular).
+    """
     angles = jax.random.uniform(key, shape=(3,), minval=-eps, maxval=eps)
     noise = Rotation.from_euler("xyz", angles).as_matrix()
     return noise @ R
 
 
-@partial(jit, static_argnames=("eps"))
+@eqx.filter_jit
 @jaxtyped(typechecker=beartype)
 def perturb_right(
     key: PRNGKeyArray, R: Num[Array, "4 4"], eps: float = 1e-6
 ) -> Num[Array, "n n"]:
+    """Apply a small random perturbation to the right side of a rotation matrix.
+
+    Parameters
+    ----------
+    key : PRNGKeyArray
+        The PRNG key for random number generation.
+    R : Num[Array, "4 4"]
+        The rotation matrix to perturb.
+    eps : float, optional
+        The maximum perturbation angle, by default 1e-6.
+
+    Returns
+    -------
+    Num[Array, "n n"]
+        The perturbed rotation matrix.
+
+    See Also
+    --------
+    perturb_left : Apply a small random perturbation to the left side of a rotation
+        matrix.
+    rotation_angle : Compute the angle of a rotation matrix.
+
+    Notes
+    -----
+    This is useful when needing to apply a small perturbation to a rotation matrix (e.g.,
+    when the rotation matrix is singular).
+    """
     angles = jax.random.uniform(key, shape=(3,), minval=-eps, maxval=eps)
     noise = Rotation.from_euler("xyz", angles).as_matrix()
     return R @ noise
-
-
-@jaxtyped(typechecker=beartype)
-def slerp(
-    R1: Num[Array, "4 4"], R2: Num[Array, "4 4"], t: DTypeLike
-) -> Num[Array, "4 4"]: ...

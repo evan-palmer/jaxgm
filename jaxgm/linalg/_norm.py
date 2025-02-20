@@ -1,5 +1,4 @@
-from functools import partial
-
+import equinox as eqx
 import jax
 import jax.numpy as jnp
 from beartype import beartype
@@ -8,8 +7,8 @@ from jax.typing import DTypeLike
 from jaxtyping import Array, Num, jaxtyped
 
 
+@eqx.filter_jit
 @jaxtyped(typechecker=beartype)
-@partial(jax.jit, static_argnames=("eps"))
 def damped_norm(x: Num[Array, "..."], eps: float = 1e-8) -> Num[Array, "..."]:
     """Compute the damped 2-norm of a vector.
 
@@ -55,7 +54,7 @@ def squared_norm(x: Num[Array, "..."]) -> DTypeLike:
     return jnp.sum(x**2)
 
 
-@partial(jit, static_argnames=("eps"))
+@eqx.filter_jit
 @jaxtyped(typechecker=beartype)
 def softnorm(x: Num[Array, "..."], eps: float = 1e-5):
     """Compute the 2-norm, but if the norm is less than `eps`, return the squared norm.
