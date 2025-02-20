@@ -1,3 +1,5 @@
+from typing import Union
+
 import jax.numpy as jnp
 from beartype import beartype
 from jax import jit
@@ -150,3 +152,21 @@ def BCH(X: Num[Array, "n n"], Y: Num[Array, "n n"]) -> Num[Array, "n n"]:
         + lie_bracket(X, lie_bracket(Y, lie_bracket(Y, X)))
     )
     return o1 + o2 + o3 + o4
+
+
+def split_twist(ξ: Num[Array, "6"]) -> Union[Num[Array, "3"], Num[Array, "3"]]:
+    """Split a twist into its linear and angular components.
+
+    Parameters
+    ----------
+    ξ : Num[Array, "6"]
+        The twist.
+
+    Returns
+    -------
+    Num[Array, "3"]
+        The linear component.
+    Num[Array, "3"]
+        The angular component.
+    """
+    return jnp.split(ξ, 2)

@@ -2,6 +2,8 @@ import jax.numpy as jnp
 from beartype import beartype
 from jaxtyping import Array, Num, jaxtyped
 
+from jaxgm.linalg import skew_symmetric
+
 
 @jaxtyped(typechecker=beartype)
 def to_matrix(t: Num[Array, "n"], rot: Num[Array, "n n"]) -> Num[Array, "n+1 n+1"]:
@@ -88,6 +90,25 @@ def unflatten(g: Num[Array, "n(n+1)"]) -> Num[Array, "n n"]:  # type: ignore
     return to_matrix(rot, t)
 
 
+@jaxtyped
+def to_parameters_from_flattened(
+    g: Num[Array, "n(n+1)"],  # type: ignore
+) -> tuple[Num[Array, "n-1"], Num[Array, "n-1 n-1"]]:
+    """Extract the translation and rotation from a flattened SE(n) matrix.
+
+    Parameters
+    ----------
+    g : Num[Array, "n(n+1)"]
+        The flattened SE(n) matrix.
+
+    Returns
+    -------
+    tuple[Num[Array, "n-1"], Num[Array, "n-1 n-1"]]
+        The translation vector and the SO(n) rotation matrix.
+    """
+    return to_parameters(unflatten(g))
+
+
 @jaxtyped(typechecker=beartype)
 def AD(g: Num[Array, "n n"], h: Num[Array, "n n"]) -> Num[Array, "n n"]:
     """Perform the Adjoint operation on a Lie group element.
@@ -134,3 +155,33 @@ def AD_inv(g: Num[Array, "n n"], h: Num[Array, "n n"]) -> Num[Array, "n n"]:
     .. math:: g^{-1} \circ h \circ g
     """
     return jnp.linalg.inv(g) @ h @ g
+
+
+@jaxtyped(typechecker=beartype)
+def to_flattened_jacobian(g: Num[Array, "4 4"]) -> Num[Array, "12 6"]:
+    """Convert a SE(3) matrix into a flattened "Jacobian" matrix.
+
+    Parameters
+    ----------
+    g : Num[Array, "4 4"]
+        The SE(3) matrix to convert into a Jacobian matrix for flattened dynamics.
+
+    Returns
+    -------
+    Num[Array, "12 6"]
+        The flattened Jacobian matrix.
+
+    Notes
+    -----
+    This is useful when you are computing the Lie group dynamics and the ODE solver
+    needs the output to be a flattened SE(3) element.
+    """
+    _, R = to_parameters(g)
+    return jnp.block(
+        [
+            [R, jnp.zeros_like(R)],
+            [jnp.zeros_like(R), skew_symmetric(R[0])],
+            [jnp.zeros_like(R), skew_symmetric(R[1])],
+            [jnp.zeros_like(R), skew_symmetric(R[2])],
+        ]
+    )
