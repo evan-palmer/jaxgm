@@ -1,6 +1,6 @@
 from ._loss import (
     chordal_error,
-    # geodesic_distance,
+    geodesic_error,
     orthogonal_error,
     rotation_error,
     special_orthogonal_error,
@@ -8,8 +8,8 @@ from ._loss import (
 
 __all__ = [
     "chordal_error",
-    # "geodesic_distance",
-    "orthogonal_error",
     "rotation_error",
+    "orthogonal_error",
     "special_orthogonal_error",
+    "geodesic_error",
 ]
