@@ -35,7 +35,7 @@ def left_gaussian(
     Notes
     -----
     The mean is applied on the left side of the exponential map.
-    .. math:: \mu \circ \exp(\xi)
+    .. math:: \mu \circ \exp(ξ)
 
     References
     ----------
@@ -76,7 +76,7 @@ def right_gaussian(
     Notes
     -----
     The mean is applied on the right side of the exponential map.
-    .. math:: \exp(\xi) \circ \mu
+    .. math:: \exp(ξ) \circ \mu
 
     References
     ----------
