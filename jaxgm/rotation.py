@@ -49,12 +49,12 @@ def normalize(R: Num[Array, "4 4"], eps: float = 1e-6) -> Num[Array, "4 4"]:
 
 @jit
 @jaxtyped(typechecker=beartype)
-def rotation_angle(R: Num[Array, "4 4"]) -> DTypeLike:
+def rotation_angle(R: Num[Array, "3 3"]) -> DTypeLike:
     """Compute the angle of a rotation matrix.
 
     Parameters
     ----------
-    R : Num[Array, "4 4"]
+    R : Num[Array, "3 3"]
         The rotation matrix.
 
     Returns

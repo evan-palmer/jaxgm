@@ -6,7 +6,6 @@ from jax import jit
 from jax.typing import DTypeLike
 from jaxtyping import Array, Num, jaxtyped
 
-from jaxgm.lie_group import to_parameters
 from jaxgm.linalg._norm import damped_norm, frobenius_norm
 from jaxgm.linalg._vecfuncs import skew3, vex3
 from jaxgm.rotation import rotation_angle
@@ -233,7 +232,7 @@ def logm_se3(T: Num[Array, "4 4"]) -> Num[Array, "4 4"]:
 
     In this case, you should apply a small right perturbation to the rotation matrix.
     """
-    t, R = to_parameters(T)
+    t, R = T[:3, 3], T[:3, :3]  # manually split instead of using `to_parameters`
     w_hat = logm_so3(R)
     w = vex3(w_hat)
 
@@ -242,3 +241,19 @@ def logm_se3(T: Num[Array, "4 4"]) -> Num[Array, "4 4"]:
     ξ = ξ.at[:3, 3].set(_left_jac_inv_so3(w) @ t)
 
     return ξ
+
+
+def nan_like(X: Num[Array, "..."]) -> Num[Array, "..."]:
+    """Create a NaN-filled array with the same shape as the input.
+
+    Parameters
+    ----------
+    X : Num[Array, "n m"]
+        The input array.
+
+    Returns
+    -------
+    Num[Array, "n m"]
+        An array filled with NaN values.
+    """
+    return jnp.full(X.shape, jnp.nan, dtype=X.dtype)

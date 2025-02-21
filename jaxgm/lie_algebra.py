@@ -1,5 +1,6 @@
 from typing import Union
 
+import jax
 import jax.numpy as jnp
 from beartype import beartype
 from jax import jit
@@ -170,3 +171,39 @@ def split_twist(ξ: Num[Array, "6"]) -> Union[Num[Array, "3"], Num[Array, "3"]]:
         The angular component.
     """
     return jnp.split(ξ, 2)
+
+
+def to_exp_coordinates(g: Num[Array, "4 4"]) -> Num[Array, "6"]:
+    """Convert an SE(3) matrix into exponential coordinates.
+
+    Parameters
+    ----------
+    g : Num[Array, "4 4"]
+        The SE(3) matrix.
+
+    Returns
+    -------
+    Num[Array, "6"]
+        The exponential coordinates.
+
+    See Also
+    --------
+    from_exp_coordinates : The inverse operation.
+    """
+    return vee(jaxgm.linalg.logm_se3(g))
+
+
+def from_exp_coordinates(ξ: Num[Array, "6"]) -> Num[Array, "4 4"]:
+    """Convert exponential coordinates into an SE(3) matrix.
+
+    Parameters
+    ----------
+    ξ : Num[Array, "6"]
+        The exponential coordinates.
+
+    Returns
+    -------
+    Num[Array, "4 4"]
+        The SE(3) matrix.
+    """
+    return jax.scipy.linalg.expm(hat(ξ))

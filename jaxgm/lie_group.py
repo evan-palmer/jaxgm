@@ -2,7 +2,7 @@ import jax.numpy as jnp
 from beartype import beartype
 from jaxtyping import Array, Num, jaxtyped
 
-from jaxgm.linalg import skew_symmetric
+from jaxgm.linalg._vecfuncs import skew3
 
 
 @jaxtyped(typechecker=beartype)
@@ -90,7 +90,7 @@ def unflatten(g: Num[Array, "n(n+1)"]) -> Num[Array, "n n"]:  # type: ignore
     return to_matrix(rot, t)
 
 
-@jaxtyped
+@jaxtyped(typechecker=beartype)
 def to_parameters_from_flattened(
     g: Num[Array, "n(n+1)"],  # type: ignore
 ) -> tuple[Num[Array, "n-1"], Num[Array, "n-1 n-1"]]:
@@ -128,7 +128,7 @@ def AD(g: Num[Array, "n n"], h: Num[Array, "n n"]) -> Num[Array, "n n"]:
     Notes
     -----
     Computes the formula:
-    .. math:: g \circ h \circ g^{-1}
+    .. math:: g circ h circ g^{-1}
     """
     return g @ h @ jnp.linalg.inv(g)
 
@@ -152,7 +152,7 @@ def AD_inv(g: Num[Array, "n n"], h: Num[Array, "n n"]) -> Num[Array, "n n"]:
     Notes
     -----
     Computes the formula:
-    .. math:: g^{-1} \circ h \circ g
+    .. math:: g^{-1} circ h circ g
     """
     return jnp.linalg.inv(g) @ h @ g
 
@@ -180,8 +180,8 @@ def to_flattened_jacobian(g: Num[Array, "4 4"]) -> Num[Array, "12 6"]:
     return jnp.block(
         [
             [R, jnp.zeros_like(R)],
-            [jnp.zeros_like(R), skew_symmetric(R[0])],
-            [jnp.zeros_like(R), skew_symmetric(R[1])],
-            [jnp.zeros_like(R), skew_symmetric(R[2])],
+            [jnp.zeros_like(R), skew3(R[0])],
+            [jnp.zeros_like(R), skew3(R[1])],
+            [jnp.zeros_like(R), skew3(R[2])],
         ]
     )

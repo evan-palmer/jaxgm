@@ -1,4 +1,4 @@
-from ._matfuncs import is_pd, is_psd, logm_se3, logm_so3, schur, sqrtm_pd
+from ._matfuncs import is_pd, is_psd, logm_se3, logm_so3, nan_like, schur, sqrtm_pd
 from ._norm import (
     damped_norm,
     frobenius_norm,
@@ -26,4 +26,5 @@ __all__ = [
     "weighted_frobenius_norm",
     "weighted_se3_norm",
     "sqrtm_pd",
+    "nan_like",
 ]
