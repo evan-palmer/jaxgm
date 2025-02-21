@@ -126,17 +126,18 @@ def schur(
     I = jnp.eye(n)  # noqa: E741
 
     # QR algorithm with shifts
-    def make_step(i, args):
-        A, Q_t = args
+    def make_step(carry, _):
+        A, Q_t = carry
 
         shift = A[-1, -1] * I
         Q, R = jnp.linalg.qr(A - shift)
         A = R @ Q + shift
         Q_t = Q_t @ Q
 
-        return A, Q_t
+        return (A, Q_t), None
 
-    return jax.lax.fori_loop(0, itmax, make_step, (T, I))
+    result, _ = jax.lax.scan(make_step, (T, I), None, length=itmax)
+    return result
 
 
 @jit
