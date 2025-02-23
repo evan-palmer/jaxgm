@@ -130,9 +130,9 @@ def mean(samples: Num[Array, "n 4 4"], iters: int = 100) -> Num[Array, "4 4"]:
     # This makes an initial guess based on the mean of the Lie algebra elements
     def init_mean(carry, _):
         mean, exp_mean = carry
-        return (mean @ jaxgm.lie_algebra.from_exp_coordinates(exp_mean), exp_mean), None
+        return (mean @ jaxgm.from_exponential_coords(exp_mean), exp_mean), None
 
-    exp_coords = jax.vmap(lambda g: jaxgm.lie_algebra.to_exp_coordinates(g))(samples)
+    exp_coords = jax.vmap(lambda g: jaxgm.to_exponential_coords(g))(samples)
     exp_mean = jnp.mean(exp_coords, axis=0)
     (mean, _), _ = jax.lax.scan(init_mean, (jnp.eye(4), exp_mean), None, length=5)
 
@@ -140,10 +140,10 @@ def mean(samples: Num[Array, "n 4 4"], iters: int = 100) -> Num[Array, "4 4"]:
     def refine_mean(carry, _):
         mean, gs = carry
         exp_coords = jax.vmap(
-            lambda g: jaxgm.lie_algebra.to_exp_coordinates(jnp.linalg.inv(mean) @ g)
+            lambda g: jaxgm.to_exponential_coords(jnp.linalg.inv(mean) @ g)
         )(gs)
         exp_mean = jnp.mean(exp_coords, axis=0)
-        return (mean @ jaxgm.lie_algebra.from_exp_coordinates(exp_mean), gs), None
+        return (mean @ jaxgm.from_exponential_coords(exp_mean), gs), None
 
     (mean, _), _ = jax.lax.scan(refine_mean, (mean, samples), None, length=iters)
 
@@ -178,9 +178,9 @@ def check_mean(samples: Num[Array, "n 4 4"], mean: Num[Array, "4 4"]) -> ScalarL
     If you notice that the magnitude is greater than this, you may need to increase the
     number of iterations used to compute the mean or decrease the covariance of the set.
     """
-    errs = jax.vmap(
-        lambda g: jaxgm.lie_algebra.to_exp_coordinates(jnp.linalg.inv(mean) @ g)
-    )(samples)
+    errs = jax.vmap(lambda g: jaxgm.to_exponential_coords(jnp.linalg.inv(mean) @ g))(
+        samples
+    )
     return jaxgm.linalg.softnorm(jnp.sum(errs, axis=0))
 
 
@@ -191,14 +191,14 @@ def covariance(
 
     Parameters
     ----------
-    samples : Num[Array, "m n n"]
+    samples : Num[Array, "m 4 4"]
         The set of Lie group elements.
-    mean : Num[Array, "n n"]
+    mean : Num[Array, "4 4"]
         The mean of the set of Lie group elements.
 
     Returns
     -------
-    Num[Array, "n n"]
+    Num[Array, "6 6"]
         The covariance of the set of Lie group elements.
 
     See Also
@@ -210,6 +210,6 @@ def covariance(
     This is the covariance of the distribution in the Lie algebra space.
     """
     mean_inv = jnp.linalg.inv(mean)
-    ys = jax.vmap(lambda g: jaxgm.lie_algebra.to_exp_coordinates(mean_inv @ g))(samples)
+    ys = jax.vmap(lambda g: jaxgm.to_exponential_coords(mean_inv @ g))(samples)
     sigma = jnp.einsum("ni,nj->ij", ys, ys) / len(samples)
     return sigma

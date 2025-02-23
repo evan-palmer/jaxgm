@@ -1,6 +1,5 @@
 from typing import Union
 
-import jax
 import jax.numpy as jnp
 from beartype import beartype
 from jax import jit
@@ -50,64 +49,6 @@ def vee(ξ: Num[Array, "4 4"]) -> Num[Array, "6"]:
 
 
 @jaxtyped(typechecker=beartype)
-def Ad(g: Num[Array, "n n"], h_circ: Num[Array, "n n"]) -> Num[Array, "n n"]:
-    """Apply the Adjoint operation to a Lie algebra element.
-
-    Parameters
-    ----------
-    g : Num[Array, "n n"]
-        The Lie group element used to move the Lie algebra element.
-    h_circ : Num[Array, "n n"]
-        The Lie algebra element to move.
-
-    Returns
-    -------
-    Num[Array, "n n"]
-        The result of the Adjoint operation.
-
-    See Also
-    --------
-    AD : The Adjoint operation for Lie groups.
-    Ad_inv : The inverse of this operation.
-
-    Notes
-    -----
-    This does not move the Lie group element associated with the tangent vector. This
-    only moves the tangent vector itself.
-    """
-    return g @ h_circ @ jnp.linalg.inv(g)
-
-
-@jaxtyped(typechecker=beartype)
-def Ad_inv(g: Num[Array, "n n"], h_circ: Num[Array, "n n"]) -> Num[Array, "n n"]:
-    """Apply the inverse Adjoint operation to a Lie algebra element.
-
-    Parameters
-    ----------
-    g : Num[Array, "n n"]
-        The Lie group element used to move the Lie algebra element.
-    h_circ : Num[Array, "n n"]
-        The Lie algebra element to move.
-
-    Returns
-    -------
-    Num[Array, "n n"]
-        The result of the inverse Adjoint operation.
-
-    See Also
-    --------
-    AD_inv : The Adjoint operation for Lie groups.
-    Ad : The inverse of this operation.
-
-    Notes
-    -----
-    This does not move the Lie group element associated with the tangent vector. This
-    only moves the tangent vector itself.
-    """
-    return jnp.linalg.inv(g) @ h_circ @ g
-
-
-@jaxtyped(typechecker=beartype)
 def lie_bracket(X: Num[Array, "n n"], Y: Num[Array, "n n"]) -> Num[Array, "n n"]:
     """Compute the Lie bracket of two Lie algebra elements.
 
@@ -128,7 +69,7 @@ def lie_bracket(X: Num[Array, "n n"], Y: Num[Array, "n n"]) -> Num[Array, "n n"]
 
 @jit
 @jaxtyped(typechecker=beartype)
-def BCH(X: Num[Array, "n n"], Y: Num[Array, "n n"]) -> Num[Array, "n n"]:
+def bch(X: Num[Array, "n n"], Y: Num[Array, "n n"]) -> Num[Array, "n n"]:
     """Compute the Baker-Campbell-Hausdorff formula for two Lie algebra elements.
 
     Parameters
@@ -171,39 +112,3 @@ def split_twist(ξ: Num[Array, "6"]) -> Union[Num[Array, "3"], Num[Array, "3"]]:
         The angular component.
     """
     return jnp.split(ξ, 2)
-
-
-def to_exp_coordinates(g: Num[Array, "4 4"]) -> Num[Array, "6"]:
-    """Convert an SE(3) matrix into exponential coordinates.
-
-    Parameters
-    ----------
-    g : Num[Array, "4 4"]
-        The SE(3) matrix.
-
-    Returns
-    -------
-    Num[Array, "6"]
-        The exponential coordinates.
-
-    See Also
-    --------
-    from_exp_coordinates : The inverse operation.
-    """
-    return vee(jaxgm.linalg.logm_se3(g))
-
-
-def from_exp_coordinates(ξ: Num[Array, "6"]) -> Num[Array, "4 4"]:
-    """Convert exponential coordinates into an SE(3) matrix.
-
-    Parameters
-    ----------
-    ξ : Num[Array, "6"]
-        The exponential coordinates.
-
-    Returns
-    -------
-    Num[Array, "4 4"]
-        The SE(3) matrix.
-    """
-    return jax.scipy.linalg.expm(hat(ξ))

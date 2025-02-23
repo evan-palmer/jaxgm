@@ -110,54 +110,6 @@ def to_parameters_from_flattened(
 
 
 @jaxtyped(typechecker=beartype)
-def AD(g: Num[Array, "n n"], h: Num[Array, "n n"]) -> Num[Array, "n n"]:
-    """Perform the Adjoint operation on a Lie group element.
-
-    Parameters
-    ----------
-    g : Num[Array, "n n"]
-        The first Lie group element.
-    h : Num[Array, "n n"]
-        The second Lie group element.
-
-    Returns
-    -------
-    Num[Array, "n n"]
-        The result of the Adjoint operation.
-
-    Notes
-    -----
-    Computes the formula:
-    .. math:: g circ h circ g^{-1}
-    """
-    return g @ h @ jnp.linalg.inv(g)
-
-
-@jaxtyped(typechecker=beartype)
-def AD_inv(g: Num[Array, "n n"], h: Num[Array, "n n"]) -> Num[Array, "n n"]:
-    """Perform the inverse Adjoint operation on a Lie group element
-
-    Parameters
-    ----------
-    g : Num[Array, "n n"]
-        The first Lie group element.
-    h : Num[Array, "n n"]
-        The second Lie group element.
-
-    Returns
-    -------
-    Num[Array, "n n"]
-        The result of the inverse Adjoint operation.
-
-    Notes
-    -----
-    Computes the formula:
-    .. math:: g^{-1} circ h circ g
-    """
-    return jnp.linalg.inv(g) @ h @ g
-
-
-@jaxtyped(typechecker=beartype)
 def to_flattened_jacobian(g: Num[Array, "4 4"]) -> Num[Array, "12 6"]:
     """Convert a SE(3) matrix into a flattened "Jacobian" matrix.
 
